@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iot_smart_bulbs/controllers/bulb_controller.dart';
-import 'package:iot_smart_bulbs/models/bulb.dart';
+import 'package:iot_smart_bulbs/business_logic/controllers/bulb_controller.dart' show BulbController;
+import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb;
+
 
 class DeviceListView extends StatelessWidget {
   DeviceListView({super.key});
@@ -38,20 +39,22 @@ class DeviceListView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildAddDeviceButton(context),
+              _buildAddDeviceButton(context), // TODO QUA CI VA REFRESH (MAGARI IN ALTO)
               const SizedBox(height: 20),
               _buildSelectDevicesButton(context),
               const SizedBox(height: 10),
               Expanded(
                 child: Obx(() => ListView.builder(
-                  itemCount: controller.selectedBulbs.length,
+                  itemCount:  controller.bulbs.length,
                   itemBuilder: (context, index) {
-                    final bulb = controller.selectedBulbs[index];
+                    final bulb = controller.bulbs[index]; // TODO DOVREBBERO ESSERE QUELLE SELEZIONATE
                     return ListTile(
-                      title: Text(bulb.name.value),
+                      title: Text(bulb.name),
                       trailing: IconButton(
                         icon: const Icon(Icons.close),
-                        onPressed: () => controller.toggleSelection(bulb),
+                        onPressed: () =>
+                            //controller.toggleSelection(bulb),
+                        () //todo scrivere cosa deve succedere
                       ),
                     );
                   },
@@ -85,7 +88,7 @@ class DeviceListView extends StatelessWidget {
             Row(
               children: [
                 Expanded(flex: 1, child: Text(bulb.id.toString())),
-                Expanded(flex: 3, child: Obx(() => Text(bulb.name.value))),
+                Expanded(flex: 3, child: Obx(() => Text(bulb.name))),
                 Expanded(
                   flex: 1,
                   child: isSelecting.value
@@ -130,7 +133,7 @@ class DeviceListView extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text("Aggiungi dispositivo"),
         content: FutureBuilder<List<Bulb>>(
-          future: controller.discoverNewDevices(),
+          future: controller.loadDevices(), // todo ho modificato
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -191,7 +194,7 @@ class DeviceListView extends StatelessWidget {
                 return;
               }
 
-              newBulb.name.value = nameController.text.trim();
+              newBulb.name = nameController.text.trim();
               final success = await controller.addDevice(newBulb);
 
               if (!success) {
@@ -232,8 +235,8 @@ class DeviceListView extends StatelessWidget {
           ElevatedButton(
             onPressed: tempSelectedBulbs.isEmpty
                 ? null
-                : () {
-              controller.selectedBulbs.addAll(tempSelectedBulbs);
+                : () { // todo qua bisogna andare sulla nuova pagina con la grid
+             // controller.selectedBulbs.addAll(tempSelectedBulbs); TODO
               tempSelectedBulbs.clear();
               isSelecting.value = false;
             },
