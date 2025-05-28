@@ -1,0 +1,4 @@
+enum BulbState {
+  ACCESA,
+  SPENTA
+}
