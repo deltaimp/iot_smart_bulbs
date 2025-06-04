@@ -14,8 +14,19 @@ class FakeBulbConnector extends ISmartBulbConnector {
     Bulb(id: 6, name: "Lampada studio", isDimmable: true, state: BulbState.ACCESA),
   ];
 
+  @override
+  Future<List<Bulb>> discoverDevices() {
+    return _fakeBulbs.toFuture();
+  }
 
-  // Future<List<Bulb>> getDevices() {
+  Future<void> setDeviceState(int deviceId, BulbState state) {
+    return Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      // In un'implementazione reale qui aggiorneremmo lo stato sul dispositivo
+    });
+  }
+
+
+// Future<List<Bulb>> getDevices() {
   //   return Future.delayed(const Duration(seconds:1))
   //       .then((_) => _fakeBulbs);
   // }
@@ -45,10 +56,5 @@ class FakeBulbConnector extends ISmartBulbConnector {
   //     return true;
   //   });
   // }
-
-  @override
-  Future<List<Bulb>> discoverDevices() {
-    return _fakeBulbs.toFuture();
-  }
 
 }

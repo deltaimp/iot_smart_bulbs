@@ -1,69 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iot_smart_bulbs/business_logic/controllers/bulb_controller.dart' show BulbController;
-import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb;
+import 'package:iot_smart_bulbs/business_logic/controllers/bulb_controller.dart';
+import 'package:iot_smart_bulbs/business_logic/controllers/loading_controller.dart';
+import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart';
+import 'package:iot_smart_bulbs/data/models/bulb.dart';
 
+import 'bulb_grid_screen.dart';
 
-class DeviceListView extends StatelessWidget {
-  DeviceListView({super.key});
+class DeviceListView extends StatefulWidget {
+  const DeviceListView({super.key});
 
-  final BulbController controller = Get.put(BulbController());
+  @override
+  _DeviceListViewState createState() => _DeviceListViewState();
+}
+
+class _DeviceListViewState extends State<DeviceListView> {
+  final BulbController controller = Get.find<BulbController>();
+  final LoadingController loadingController = Get.find();
   final RxBool isSelecting = false.obs;
-  final RxList<Bulb> tempSelectedBulbs = <Bulb>[].obs;
+  final RxList<UIBulb> tempSelectedBulbs = <UIBulb>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadDevices(); // Carica i dispositivi all'avvio
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black45,
       appBar: AppBar(title: const Text("Elenco dispositivi")),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildDevicesHeader(),
-                    const Divider(),
-                    Expanded(
-                      child: Obx(() => ListView.builder(
-                        itemCount: controller.bulbs.length,
-                        itemBuilder: (context, index) {
-                          final bulb = controller.bulbs[index];
-                          return _buildDeviceRow(bulb, context);
-                        },
-                      )),
+      body: GetBuilder<LoadingController>(
+        builder: (loadingController) {
+          if (loadingController.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildDevicesHeader(),
+                        const Divider(),
+                        Expanded(
+                          child: Obx(() => ListView.builder(
+                            itemCount: controller.bulbs.length,
+                            itemBuilder: (context, index) {
+                              final bulb = controller.bulbs[index];
+                              return _buildDeviceRow(bulb, context);
+                            },
+                          )),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildAddDeviceButton(context),
+                  const SizedBox(height: 20),
+                  _buildSelectDevicesButton(context),
+                  const SizedBox(height: 10),
+                  Obx(() => isSelecting.value
+                      ? _buildSelectionControls()
+                      : const SizedBox()),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildAddDeviceButton(context), // TODO QUA CI VA REFRESH (MAGARI IN ALTO)
-              const SizedBox(height: 20),
-              _buildSelectDevicesButton(context),
-              const SizedBox(height: 10),
-              Expanded(
-                child: Obx(() => ListView.builder(
-                  itemCount:  controller.bulbs.length,
-                  itemBuilder: (context, index) {
-                    final bulb = controller.bulbs[index]; // TODO DOVREBBERO ESSERE QUELLE SELEZIONATE
-                    return ListTile(
-                      title: Text(bulb.name),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () =>
-                            //controller.toggleSelection(bulb),
-                        () //todo scrivere cosa deve succedere
-                      ),
-                    );
-                  },
-                )),
-              ),
-              Obx(() => isSelecting.value ? _buildSelectionControls() : const SizedBox()),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -71,30 +80,42 @@ class DeviceListView extends StatelessWidget {
   Widget _buildDevicesHeader() {
     return const Row(
       children: [
-        Expanded(flex: 1, child: Text("ID", style: TextStyle(fontWeight: FontWeight.bold))),
-        Expanded(flex: 3, child: Text("Nome dispositivo", style: TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(
+            flex: 1,
+            child: Text("ID", style: TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(
+            flex: 3,
+            child: Text("Nome dispositivo",
+                style: TextStyle(fontWeight: FontWeight.bold))),
         Expanded(flex: 1, child: SizedBox()),
       ],
     );
   }
 
-  Widget _buildDeviceRow(Bulb bulb, BuildContext context) {
+  Widget _buildDeviceRow(UIBulb bulb, BuildContext context) {
     return Obx(() {
       final isSelected = tempSelectedBulbs.contains(bulb);
       return Container(
-        color: isSelecting.value && isSelected ? Colors.green.withOpacity(0.2) : Colors.transparent,
+        color: isSelecting.value && isSelected
+            ? Colors.green.withOpacity(0.2)
+            : Colors.transparent,
         child: Column(
           children: [
             Row(
               children: [
                 Expanded(flex: 1, child: Text(bulb.id.toString())),
-                Expanded(flex: 3, child: Obx(() => Text(bulb.name))),
+                Expanded(
+                    flex: 3,
+                    child:
+                    Text(bulb.name, style: const TextStyle(color: Colors.white))),
                 Expanded(
                   flex: 1,
                   child: isSelecting.value
                       ? IconButton(
                     icon: Icon(
-                      isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                      isSelected
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
                       color: isSelected ? Colors.green : null,
                     ),
                     onPressed: () {
@@ -133,21 +154,23 @@ class DeviceListView extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text("Aggiungi dispositivo"),
         content: FutureBuilder<List<Bulb>>(
-          future: controller.loadDevices(), // todo ho modificato
+          future: controller.loadDevices(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
+            final devices = snapshot.data ?? [];
             return SizedBox(
               width: double.maxFinite,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: snapshot.data?.length ?? 0,
+                itemCount: devices.length,
                 itemBuilder: (context, index) {
-                  final bulb = snapshot.data![index];
+                  final bulb = devices[index];
                   return ListTile(
                     title: Text("Dispositivo ${bulb.id}"),
-                    onTap: () => _showNameDeviceDialog(context, bulb),
+                    onTap: () =>
+                        _showNameDeviceDialog(context, UIBulb.fromBulb(bulb)),
                   );
                 },
               ),
@@ -164,7 +187,7 @@ class DeviceListView extends StatelessWidget {
     );
   }
 
-  void _showNameDeviceDialog(BuildContext context, Bulb newBulb) {
+  void _showNameDeviceDialog(BuildContext context, UIBulb newBulb) {
     final nameController = TextEditingController();
     Navigator.pop(context);
 
@@ -216,7 +239,9 @@ class DeviceListView extends StatelessWidget {
   Widget _buildSelectDevicesButton(BuildContext context) {
     return Obx(() => ElevatedButton.icon(
       icon: const Icon(Icons.checklist),
-      label: Text(isSelecting.value ? "Annulla selezione" : "Seleziona dispositivi da controllare"),
+      label: Text(isSelecting.value
+          ? "Annulla selezione"
+          : "Seleziona dispositivi da controllare"),
       onPressed: () {
         if (isSelecting.value) {
           tempSelectedBulbs.clear();
@@ -227,7 +252,7 @@ class DeviceListView extends StatelessWidget {
   }
 
   Widget _buildSelectionControls() {
-    return Obx(() => Padding(
+    return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -235,21 +260,16 @@ class DeviceListView extends StatelessWidget {
           ElevatedButton(
             onPressed: tempSelectedBulbs.isEmpty
                 ? null
-                : () { // todo qua bisogna andare sulla nuova pagina con la grid
-             // controller.selectedBulbs.addAll(tempSelectedBulbs); TODO
+                : () {
+              Get.to(() => BulbGridScreen(
+                  selectedBulbs: tempSelectedBulbs.toList()));
               tempSelectedBulbs.clear();
               isSelecting.value = false;
             },
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text("Fine"),
+            child: const Text("Controlla dispositivi"),
           ),
         ],
       ),
-    ));
+    );
   }
 }

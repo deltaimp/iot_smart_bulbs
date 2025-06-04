@@ -1,16 +1,74 @@
 import 'package:get/get.dart';
+import 'package:iot_smart_bulbs/business_logic/controllers/loading_controller.dart';
 import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb;
 import 'package:iot_smart_bulbs/data/repositories/implementations/fake_bulb_repository.dart';
 import 'package:iot_smart_bulbs/nd_dart_lib/extensions.dart';
 
+import '../ui_models/ui_bulb.dart';
+
 class BulbController extends GetxController {
   final FakeBulbConnector _repository = FakeBulbConnector();
-  final RxList<Bulb> bulbs = <Bulb>[].obs;
-  // final RxList<Bulb> selectedBulbs =  <Bulb>[].obs;
-  final RxBool isLoading = false.obs; /*andrebbe messo in un altro controller con
-  solo questavariabile, usandolo con GetBuilder e update() di GetxController
-  e ci serve per mostrare indicatore di ricerca */
+  final RxList<UIBulb> bulbs = <UIBulb>[].obs;
+  final RxList<UIBulb> selectedBulbs =  <UIBulb>[].obs;
+ // final RxBool isLoading = false.obs; /*andrebbe messo in un altro controller con
+//  solo questavariabile, usandolo con GetBuilder e update() di GetxController
+ // e ci serve per mostrare indicatore di ricerca */
+  final LoadingController loadingController = Get.put(LoadingController());
 
+  Future<bool> checkDevice(Bulb b) {
+    return true.toFuture();
+  }
+
+ /* Future<List<UIBulb>> loadDevices() {
+    isLoading.value = true;
+    return _repository
+        .discoverDevices()
+        .then((deviceList) => deviceList.map((b) async {
+      checkDevice(b).then((ok) {
+        return ok ? b : null;
+      });
+    }))
+        .then((deviceList) => deviceList.whereType<Bulb>().toList())
+        .then((deviceList) {
+      bulbs.value = deviceList;
+      isLoading.value = false;
+      return bulbs;
+    });
+  }*/
+
+  void removeDevice(int id) {
+    bulbs.removeWhere((b) => b.id == id);
+    selectedBulbs.removeWhere((b) => b.id == id);
+  }
+
+  Future<List<UIBulb>> loadDevices() {
+    loadingController.setLoading(true);    return _repository
+        .discoverDevices()
+        .then((rawBulbs) => rawBulbs.map((b) => UIBulb.fromBulb(b)).toList())
+        .then((uiBulbList) {
+      bulbs.value = uiBulbList;
+      loadingController.setLoading(false);
+      return uiBulbList;
+    });
+  }
+
+  void toggleSelection(UIBulb bulb) {
+    if (selectedBulbs.contains(bulb)) {
+      selectedBulbs.remove(bulb);
+    } else {
+      selectedBulbs.add(bulb);
+    }
+  }
+
+  void clearSelection() {
+    selectedBulbs.clear();
+  }
+
+  bool addDevice(Bulb bulb) {
+    if (bulbs.any((b) => b.name == bulb.name)) return false;
+    bulbs.add(UIBulb.fromBulb(bulb));
+    return true;
+  }
   // @override
   // void onInit() {
   //   super.onInit();
@@ -57,24 +115,5 @@ class BulbController extends GetxController {
   //   }
   // }
 
-  Future<bool> checkDevice(Bulb b) {
-    return true.toFuture();
-  }
 
-  Future<List<Bulb>> loadDevices() {
-    isLoading.value = true;
-    return _repository
-             .discoverDevices()
-              .then((deviceList) => deviceList.map((b) async {
-                checkDevice(b).then((ok) {
-                  return ok ? b : null;
-                });
-              }))
-              .then((deviceList) => deviceList.whereType<Bulb>().toList())
-              .then((deviceList) {
-                bulbs.value = deviceList;
-                isLoading.value = false;
-                return bulbs;
-              });
-  }
 }
