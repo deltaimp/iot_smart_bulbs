@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/simple/get_state.dart';
-import 'package:iot_smart_bulbs/business_logic/controllers/single_bulb_controller.dart' show SingleBulbController;
-import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart' show UIBulb;
+import 'package:iot_smart_bulbs/business_logic/controllers/single_bulb_controller.dart';
+import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart';
+import 'package:iot_smart_bulbs/data/models/state.dart' show BulbState;
 
 class BulbGridScreen extends StatelessWidget {
   final List<UIBulb> selectedBulbs;
@@ -10,15 +11,38 @@ class BulbGridScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final crossAxisCount = selectedBulbs.length <= 4 ? 2 : 1;
+    final childAspectRatio = selectedBulbs.length <= 4 ? 1.2 : 1.8;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Controlla lampadine")),
+      appBar: AppBar(
+        title: const Text('Controllo Lampadine'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            // Da implementare: Navigator.push(context, MaterialPageRoute(builder: (_) => MenuScreen()));
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              // Da implementare: Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen()));
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.builder(
+          physics: selectedBulbs.length > 4
+              ? const AlwaysScrollableScrollPhysics()
+              : const NeverScrollableScrollPhysics(),
+          shrinkWrap: selectedBulbs.length > 4,
           itemCount: selectedBulbs.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),
@@ -28,18 +52,56 @@ class BulbGridScreen extends StatelessWidget {
               init: SingleBulbController(bulb: bulb),
               builder: (ctrl) {
                 return GestureDetector(
-                  onTap: ctrl.togglePower,
+                  onTap: () {
+                    // Da implementare: Navigator.push(context, MaterialPageRoute(builder: (_) => SingleBulbScreen(bulb: bulb)));
+                  },
                   child: Card(
-                    color: ctrl.rxBulb.value.uiColor,
-                    child: Center(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(ctrl.rxBulb.value.name),
-                          const SizedBox(height: 8),
-                          Text(ctrl.rxBulb.value.isAvailable
-                              ? 'Disponibile'
-                              : 'Non disponibile'),
+                          Column(
+                            children: [
+                              Text(
+                                'ID: ${bulb.id}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                bulb.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                          Expanded(
+                            child: Icon(
+                              //'assets/images/single_bulb.jpg',
+                              Icons.lightbulb,
+                              size: 60,
+                              color: ctrl.rxBulb.value.uiColor,
+                            ),
+                          ),
+                          Text(
+                            ctrl.rxBulb.value.isAvailable
+                                ? 'Stato: ${ctrl.rxBulb.value.state == BulbState.ACCESA ? "Accesa" : "Spenta"}'
+                                : 'Non disponibile',
+                            style: TextStyle(
+                              color: ctrl.rxBulb.value.isAvailable
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
                         ],
                       ),
                     ),

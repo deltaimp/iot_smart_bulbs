@@ -60,8 +60,8 @@ class _DeviceListViewState extends State<DeviceListView> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildAddDeviceButton(context),
+                  const SizedBox(height: 16), // TODO
+                  _buildRefreshDevicesButton(),
                   const SizedBox(height: 20),
                   _buildSelectDevicesButton(context),
                   const SizedBox(height: 10),
@@ -96,145 +96,66 @@ class _DeviceListViewState extends State<DeviceListView> {
     return Obx(() {
       final isSelected = tempSelectedBulbs.contains(bulb);
       return Container(
-        color: isSelecting.value && isSelected
-            ? Colors.green.withOpacity(0.2)
-            : Colors.transparent,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(flex: 1, child: Text(bulb.id.toString())),
-                Expanded(
-                    flex: 3,
-                    child:
-                    Text(bulb.name, style: const TextStyle(color: Colors.white))),
-                Expanded(
-                  flex: 1,
-                  child: isSelecting.value
-                      ? IconButton(
-                    icon: Icon(
-                      isSelected
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      color: isSelected ? Colors.green : null,
-                    ),
-                    onPressed: () {
-                      if (isSelected) {
-                        tempSelectedBulbs.remove(bulb);
-                      } else {
-                        tempSelectedBulbs.add(bulb);
-                      }
-                    },
-                  )
-                      : IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () => controller.removeDevice(bulb.id),
-                  ),
-                ),
-              ],
+        decoration: BoxDecoration(
+          color: isSelecting.value && isSelected
+              ? Colors.green.withOpacity(1)
+              : Colors.transparent,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).dividerColor,
+              width: 1.0,
             ),
-            const Divider(),
+            bottom: BorderSide(
+              color: Theme.of(context).dividerColor,
+              width: 1.0,
+            ),
+          ),
+        ),
+        margin: EdgeInsets.zero,
+        padding: EdgeInsets.zero,
+        child: Row(
+          children: [
+            Expanded(flex: 1, child: Text(bulb.id.toString())),
+            Expanded(
+              flex: 3,
+              child: Text(bulb.name, style: const TextStyle(color: Colors.white)),
+            ),
+            Expanded(
+              flex: 1,
+              child: isSelecting.value
+                  ? IconButton(
+                icon: Icon(
+                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: isSelected ? Colors.white : null,
+                ),
+                onPressed: () {
+                  if (isSelected) {
+                    tempSelectedBulbs.remove(bulb);
+                  } else {
+                    tempSelectedBulbs.add(bulb);
+                  }
+                },
+              )
+                  : IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: () => controller.removeDevice(bulb.id),
+              ),
+            ),
           ],
         ),
       );
     });
   }
 
-  Widget _buildAddDeviceButton(BuildContext context) {
+ Widget _buildRefreshDevicesButton () {
     return ElevatedButton.icon(
-      icon: const Icon(Icons.add),
-      label: const Text("Aggiungi dispositivo"),
-      onPressed: () => _showAddDeviceDialog(context),
+      icon: const Icon(Icons.refresh),
+      label: const Text("Aggiorna dispositivi"),
+      onPressed: () => controller.loadDevices(), // chiamata al repository
     );
-  }
+ }
 
-  void _showAddDeviceDialog(BuildContext context) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Aggiungi dispositivo"),
-        content: FutureBuilder<List<Bulb>>(
-          future: controller.loadDevices(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final devices = snapshot.data ?? [];
-            return SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: devices.length,
-                itemBuilder: (context, index) {
-                  final bulb = devices[index];
-                  return ListTile(
-                    title: Text("Dispositivo ${bulb.id}"),
-                    onTap: () =>
-                        _showNameDeviceDialog(context, UIBulb.fromBulb(bulb)),
-                  );
-                },
-              ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Annulla"),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showNameDeviceDialog(BuildContext context, UIBulb newBulb) {
-    final nameController = TextEditingController();
-    Navigator.pop(context);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Assegna nome a dispositivo ${newBulb.id}"),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: "Nome dispositivo",
-            hintText: "Inserisci un nome univoco",
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Annulla"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Il nome non può essere vuoto")),
-                );
-                return;
-              }
-
-              newBulb.name = nameController.text.trim();
-              final success = await controller.addDevice(newBulb);
-
-              if (!success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Nome già esistente")),
-                );
-                return;
-              }
-
-              Navigator.pop(context);
-            },
-            child: const Text("Salva"),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSelectDevicesButton(BuildContext context) {
     return Obx(() => ElevatedButton.icon(
@@ -261,11 +182,20 @@ class _DeviceListViewState extends State<DeviceListView> {
             onPressed: tempSelectedBulbs.isEmpty
                 ? null
                 : () {
-              Get.to(() => BulbGridScreen(
-                  selectedBulbs: tempSelectedBulbs.toList()));
-              tempSelectedBulbs.clear();
-              isSelecting.value = false;
+              final selected = tempSelectedBulbs.toList();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => BulbGridScreen(
+                    selectedBulbs: selected,
+                  ),
+                ),
+              ).then((_) {
+                tempSelectedBulbs.clear();
+                isSelecting.value = false;
+              });
             },
+
+
             child: const Text("Controlla dispositivi"),
           ),
         ],

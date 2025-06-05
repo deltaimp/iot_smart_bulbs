@@ -64,11 +64,6 @@ class BulbController extends GetxController {
     selectedBulbs.clear();
   }
 
-  bool addDevice(Bulb bulb) {
-    if (bulbs.any((b) => b.name == bulb.name)) return false;
-    bulbs.add(UIBulb.fromBulb(bulb));
-    return true;
-  }
   // @override
   // void onInit() {
   //   super.onInit();
@@ -89,16 +84,6 @@ class BulbController extends GetxController {
   //     isLoading.value = false;
   //     return newDevices;
   //   });
-  // }
-  //
-  // Future<bool> addDevice(Bulb newBulb) { //NO, USER NON PUO' AGGIUNGERE "MANUALMENTE"
-  //   if (bulbs.any((b) => b.name.value == newBulb.name.value)) {
-  //     return Future.value(false);
-  //   }
-  //
-  //   return _repository.addDevice(newBulb)
-  //       .then((_) => loadDevices())
-  //       .then((_) => true);
   // }
   //
   // Future<bool> removeDevice(int deviceId) {
