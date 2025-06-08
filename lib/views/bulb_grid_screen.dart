@@ -3,6 +3,8 @@ import 'package:get/get_state_manager/src/simple/get_state.dart';
 import 'package:iot_smart_bulbs/business_logic/controllers/single_bulb_controller.dart';
 import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart';
 import 'package:iot_smart_bulbs/data/models/state.dart' show BulbState;
+import 'package:iot_smart_bulbs/views/screens/menu_screen.dart';
+import 'package:iot_smart_bulbs/views/screens/settings_screen.dart';
 
 class BulbGridScreen extends StatelessWidget {
   final List<UIBulb> selectedBulbs;
@@ -15,19 +17,19 @@ class BulbGridScreen extends StatelessWidget {
     final childAspectRatio = selectedBulbs.length <= 4 ? 1.2 : 1.8;
 
     return Scaffold(
+      drawer: const Drawer( // Qui metti il MenuScreen
+        child: MenuScreen(),
+      ),
       appBar: AppBar(
         title: const Text('Controllo Lampadine'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {
-            // Da implementare: Navigator.push(context, MaterialPageRoute(builder: (_) => MenuScreen()));
-          },
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // Da implementare: Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen()));
+              showModalBottomSheet(
+                context: context,
+                builder: (_) => const SettingsScreen(), // oppure un dialog o drawer a destra
+              );
             },
           ),
         ],

@@ -6,12 +6,30 @@ import 'package:iot_smart_bulbs/nd_dart_lib/extensions.dart';
 
 class FakeBulbConnector extends ISmartBulbConnector {
   final List<Bulb> _fakeBulbs = [
-    Bulb(id: 1, name: "Lampada cucina", isDimmable: true, state: BulbState.ACCESA),
-    Bulb(id: 2, name: "Lampada giardino", isDimmable: false, state: BulbState.ACCESA),
-    Bulb(id: 3, name: "Abat jour camera", isDimmable: true, state: BulbState.SPENTA),
-    Bulb(id: 4, name: "Lampada bagno", isDimmable: true, state: BulbState.ACCESA),
-    Bulb(id: 5, name: "Luce soffitto", isDimmable: false, state: BulbState.SPENTA),
-    Bulb(id: 6, name: "Lampada studio", isDimmable: true, state: BulbState.ACCESA),
+    Bulb(id: 1,
+        name: "Lampada cucina",
+        isDimmable: true,
+        state: BulbState.ACCESA),
+    Bulb(id: 2,
+        name: "Lampada giardino",
+        isDimmable: false,
+        state: BulbState.ACCESA),
+    Bulb(id: 3,
+        name: "Abat jour camera",
+        isDimmable: true,
+        state: BulbState.SPENTA),
+    Bulb(id: 4,
+        name: "Lampada bagno",
+        isDimmable: true,
+        state: BulbState.ACCESA),
+    Bulb(id: 5,
+        name: "Luce soffitto",
+        isDimmable: false,
+        state: BulbState.SPENTA),
+    Bulb(id: 6,
+        name: "Lampada studio",
+        isDimmable: true,
+        state: BulbState.ACCESA),
   ];
 
   @override
@@ -25,7 +43,14 @@ class FakeBulbConnector extends ISmartBulbConnector {
     });
   }
 
+  // TODO aggiungere reale logica di controllo della rete
+  Future<bool> pingDevice (int id) {
+    return Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      return id % 2 == 0;
+    });
+  }
 
+}
 // Future<List<Bulb>> getDevices() {
   //   return Future.delayed(const Duration(seconds:1))
   //       .then((_) => _fakeBulbs);
@@ -57,4 +82,3 @@ class FakeBulbConnector extends ISmartBulbConnector {
   //   });
   // }
 
-}

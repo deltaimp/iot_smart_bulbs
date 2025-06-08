@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 import 'package:iot_smart_bulbs/business_logic/controllers/bulb_controller.dart';
 import 'package:iot_smart_bulbs/business_logic/controllers/loading_controller.dart';
 import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart';
-import 'package:iot_smart_bulbs/data/models/bulb.dart';
+import 'package:iot_smart_bulbs/views/screens/menu_screen.dart';
+import 'package:iot_smart_bulbs/views/screens/settings_screen.dart';
 
 import 'bulb_grid_screen.dart';
 
@@ -23,16 +24,33 @@ class _DeviceListViewState extends State<DeviceListView> {
   @override
   void initState() {
     super.initState();
-    controller.loadDevices(); // Carica i dispositivi all'avvio
+    controller.loadDevices();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black45,
-      appBar: AppBar(title: const Text("Elenco dispositivi")),
+
+      drawer: const Drawer( // Qui metti il MenuScreen
+        child: MenuScreen(),
+      ),
+      appBar: AppBar(
+        title: const Text('Controllo Lampadine'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (_) => const SettingsScreen(), // oppure un dialog o drawer a destra
+              );
+            },
+          ),
+        ],
+      ),
       body: GetBuilder<LoadingController>(
-        builder: (loadingController) {
+        builder: (_) {
           if (loadingController.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -60,10 +78,10 @@ class _DeviceListViewState extends State<DeviceListView> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16), // TODO
+                  const SizedBox(height: 16),
                   _buildRefreshDevicesButton(),
                   const SizedBox(height: 20),
-                  _buildSelectDevicesButton(context),
+                  _buildSelectDevicesButton(),
                   const SizedBox(height: 10),
                   Obx(() => isSelecting.value
                       ? _buildSelectionControls()
@@ -81,12 +99,15 @@ class _DeviceListViewState extends State<DeviceListView> {
     return const Row(
       children: [
         Expanded(
-            flex: 1,
-            child: Text("ID", style: TextStyle(fontWeight: FontWeight.bold))),
+          flex: 1,
+          child: Text("ID",
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        ),
         Expanded(
-            flex: 3,
-            child: Text("Nome dispositivo",
-                style: TextStyle(fontWeight: FontWeight.bold))),
+          flex: 3,
+          child: Text("Nome dispositivo",
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        ),
         Expanded(flex: 1, child: SizedBox()),
       ],
     );
@@ -95,69 +116,96 @@ class _DeviceListViewState extends State<DeviceListView> {
   Widget _buildDeviceRow(UIBulb bulb, BuildContext context) {
     return Obx(() {
       final isSelected = tempSelectedBulbs.contains(bulb);
-      return Container(
-        decoration: BoxDecoration(
-          color: isSelecting.value && isSelected
-              ? Colors.green.withOpacity(1)
-              : Colors.transparent,
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).dividerColor,
-              width: 1.0,
-            ),
-            bottom: BorderSide(
-              color: Theme.of(context).dividerColor,
-              width: 1.0,
-            ),
-          ),
-        ),
-        margin: EdgeInsets.zero,
-        padding: EdgeInsets.zero,
-        child: Row(
-          children: [
-            Expanded(flex: 1, child: Text(bulb.id.toString())),
-            Expanded(
-              flex: 3,
-              child: Text(bulb.name, style: const TextStyle(color: Colors.white)),
-            ),
-            Expanded(
-              flex: 1,
-              child: isSelecting.value
-                  ? IconButton(
-                icon: Icon(
-                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: isSelected ? Colors.white : null,
-                ),
-                onPressed: () {
-                  if (isSelected) {
-                    tempSelectedBulbs.remove(bulb);
-                  } else {
-                    tempSelectedBulbs.add(bulb);
-                  }
-                },
-              )
-                  : IconButton(
-                icon: const Icon(Icons.remove_circle_outline),
-                onPressed: () => controller.removeDevice(bulb.id),
+      return GestureDetector(
+        onTap: isSelecting.value
+            ? () {
+          if (isSelected) {
+            tempSelectedBulbs.remove(bulb);
+          } else {
+            tempSelectedBulbs.add(bulb);
+          }
+        }
+            : null,
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelecting.value && isSelected
+                ? Colors.green.withOpacity(0.8)
+                : Colors.transparent,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 1.0,
+              ),
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 1.0,
               ),
             ),
-          ],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Text(
+                  bulb.id.toString(),
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Row(
+                  children: [
+                    Text(bulb.name,
+                        style: const TextStyle(color: Colors.white)),
+                    if (!bulb.isAvailable)
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Icon(Icons.cloud_off,
+                            color: Colors.red, size: 16),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: isSelecting.value
+                    ? IconButton(
+                  icon: Icon(
+                    isSelected
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: isSelected ? Colors.white : null,
+                  ),
+                  onPressed: () {
+                    if (isSelected) {
+                      tempSelectedBulbs.remove(bulb);
+                    } else {
+                      tempSelectedBulbs.add(bulb);
+                    }
+                  },
+                )
+                    : IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: () => controller.removeDevice(bulb),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     });
   }
 
- Widget _buildRefreshDevicesButton () {
+  Widget _buildRefreshDevicesButton() {
     return ElevatedButton.icon(
       icon: const Icon(Icons.refresh),
       label: const Text("Aggiorna dispositivi"),
-      onPressed: () => controller.loadDevices(), // chiamata al repository
+      onPressed: () => controller.loadDevices(),
     );
- }
+  }
 
-
-
-  Widget _buildSelectDevicesButton(BuildContext context) {
+  Widget _buildSelectDevicesButton() {
     return Obx(() => ElevatedButton.icon(
       icon: const Icon(Icons.checklist),
       label: Text(isSelecting.value
@@ -183,19 +231,18 @@ class _DeviceListViewState extends State<DeviceListView> {
                 ? null
                 : () {
               final selected = tempSelectedBulbs.toList();
-              Navigator.of(context).push(
+              Navigator.of(context)
+                  .push(
                 MaterialPageRoute(
-                  builder: (context) => BulbGridScreen(
-                    selectedBulbs: selected,
-                  ),
+                  builder: (context) =>
+                      BulbGridScreen(selectedBulbs: selected),
                 ),
-              ).then((_) {
+              )
+                  .then((_) {
                 tempSelectedBulbs.clear();
                 isSelecting.value = false;
               });
             },
-
-
             child: const Text("Controlla dispositivi"),
           ),
         ],

@@ -9,17 +9,61 @@ import '../ui_models/ui_bulb.dart';
 class BulbController extends GetxController {
   final FakeBulbConnector _repository = FakeBulbConnector();
   final RxList<UIBulb> bulbs = <UIBulb>[].obs;
-  final RxList<UIBulb> selectedBulbs =  <UIBulb>[].obs;
- // final RxBool isLoading = false.obs; /*andrebbe messo in un altro controller con
-//  solo questavariabile, usandolo con GetBuilder e update() di GetxController
- // e ci serve per mostrare indicatore di ricerca */
+  final RxList<UIBulb> selectedBulbs = <UIBulb>[].obs;
+
   final LoadingController loadingController = Get.put(LoadingController());
 
   Future<bool> checkDevice(Bulb b) {
-    return true.toFuture();
+    return _repository.pingDevice(b.id);
   }
 
- /* Future<List<UIBulb>> loadDevices() {
+  void removeDevice(UIBulb bulb) {
+    bulbs.removeWhere((b) => b.id == bulb.id);
+    selectedBulbs.removeWhere((b) => b.id == bulb.id);
+  }
+
+
+  Future<List<UIBulb>> loadDevices() {
+    loadingController.setLoading(true);
+
+    return _repository.discoverDevices()
+        .then((rawBulbs) => Future.wait(rawBulbs.map((b) =>
+        checkDevice(b).then((isAvailable) {
+          final uiBulb = UIBulb.fromBulb(b);
+          uiBulb.isAvailable = isAvailable;
+          return uiBulb;
+        }),
+    )))
+        .then((uiBulbList) {
+      bulbs.value = uiBulbList;
+      return uiBulbList;
+    })
+        .catchError((err) {
+      // Gestisci l’errore (log, snackbar, ecc.)
+      Get.snackbar('Errore', 'Non è stato possibile caricare i dispositivi');
+      return <UIBulb>[];
+    })
+        .whenComplete(() {
+      loadingController.setLoading(false);
+    });
+  }
+
+
+
+  void toggleSelection(UIBulb bulb) {
+    if (selectedBulbs.contains(bulb)) {
+      selectedBulbs.remove(bulb);
+    } else {
+      selectedBulbs.add(bulb);
+    }
+  }
+
+  void clearSelection() {
+    selectedBulbs.clear();
+  }
+}
+
+/* Future<List<UIBulb>> loadDevices() {
     isLoading.value = true;
     return _repository
         .discoverDevices()
@@ -35,35 +79,6 @@ class BulbController extends GetxController {
       return bulbs;
     });
   }*/
-
-  void removeDevice(int id) {
-    bulbs.removeWhere((b) => b.id == id);
-    selectedBulbs.removeWhere((b) => b.id == id);
-  }
-
-  Future<List<UIBulb>> loadDevices() {
-    loadingController.setLoading(true);    return _repository
-        .discoverDevices()
-        .then((rawBulbs) => rawBulbs.map((b) => UIBulb.fromBulb(b)).toList())
-        .then((uiBulbList) {
-      bulbs.value = uiBulbList;
-      loadingController.setLoading(false);
-      return uiBulbList;
-    });
-  }
-
-  void toggleSelection(UIBulb bulb) {
-    if (selectedBulbs.contains(bulb)) {
-      selectedBulbs.remove(bulb);
-    } else {
-      selectedBulbs.add(bulb);
-    }
-  }
-
-  void clearSelection() {
-    selectedBulbs.clear();
-  }
-
   // @override
   // void onInit() {
   //   super.onInit();
@@ -99,6 +114,3 @@ class BulbController extends GetxController {
   //     selectedBulbs.add(bulb);
   //   }
   // }
-
-
-}
