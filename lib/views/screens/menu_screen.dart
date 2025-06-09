@@ -34,22 +34,15 @@ class MenuScreen extends StatelessWidget {
             // Vai alla lista completa lampadine
           },
         ),
-        ListTile(
-          leading: const Icon(Icons.group),
-          title: const Text('Gruppi'),
+        /*ListTile(
+          leading: const Icon(Icons.qualcosa),
+          title: const Text('qualcosa'),
           onTap: () {
             Navigator.pop(context);
-            // Vai alla schermata gruppi (es. Salotto, Cucina)
+            // Vai alla schermata gruppi (es. stanza1, stanza2)
           },
-        ),
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Logout'),
-          onTap: () {
-            Navigator.pop(context);
-            // Esegui logout
-          },
-        ),
+        ),*/
+
       ],
     );
   }
