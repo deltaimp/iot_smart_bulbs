@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb;
 import 'package:iot_smart_bulbs/data/models/state.dart';
-import 'package:iot_smart_bulbs/data/repositories/interfaces/i_smart_bulb_connectore.dart';
+import 'package:iot_smart_bulbs/data/repositories/interfaces/i_smart_bulb_connector.dart';
 import 'package:iot_smart_bulbs/nd_dart_lib/extensions.dart';
 
 class FakeBulbConnector extends ISmartBulbConnector {

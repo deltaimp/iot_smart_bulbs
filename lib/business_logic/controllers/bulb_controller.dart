@@ -39,7 +39,6 @@ class BulbController extends GetxController {
       return uiBulbList;
     })
         .catchError((err) {
-      // Gestisci l’errore (log, snackbar, ecc.)
       Get.snackbar('Errore', 'Non è stato possibile caricare i dispositivi');
       return <UIBulb>[];
     })
