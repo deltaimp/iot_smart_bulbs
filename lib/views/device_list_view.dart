@@ -16,15 +16,40 @@ class DeviceListView extends StatefulWidget {
 }
 
 class _DeviceListViewState extends State<DeviceListView> {
-  final BulbController controller = Get.find<BulbController>();
-  final LoadingController loadingController = Get.find();
-  final RxBool isSelecting = false.obs;
-  final RxList<UIBulb> tempSelectedBulbs = <UIBulb>[].obs;
+  final BulbsController controller = Get.find<BulbsController>();
+  final LoadingController loadingController = Get.put(LoadingController());
+  final IsSelectingUIController isSelectingController = IsSelectingUIController();
+
+  void _loadDevices() {
+    loadingController.setLoading(true);
+    controller
+        .loadDevices()
+        .whenComplete(() {
+      loadingController.setLoading(false);
+    });
+  }
+
+  void selectingListener() {
+    setState(() {
+
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    controller.loadDevices();
+
+    isSelectingController.addListener(selectingListener);
+    _loadDevices();
+  }
+
+  @override
+  void dispose() {
+    Get.delete<LoadingController>();
+    loadingController.dispose();
+    isSelectingController.removeListener(selectingListener);
+    isSelectingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -32,11 +57,11 @@ class _DeviceListViewState extends State<DeviceListView> {
     return Scaffold(
       backgroundColor: Colors.black45,
 
-      drawer: const Drawer( // Qui metti il MenuScreen
+      drawer: const Drawer(
         child: MenuScreen(),
       ),
       appBar: AppBar(
-        title: const Text('Controllo Lampadine'),
+        title: const Text('Gestione Lampadine'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -81,11 +106,9 @@ class _DeviceListViewState extends State<DeviceListView> {
                   const SizedBox(height: 16),
                   _buildRefreshDevicesButton(),
                   const SizedBox(height: 20),
-                  _buildSelectDevicesButton(),
+                  SelectDevicesButton(controller: isSelectingController, bulbController: controller,),
                   const SizedBox(height: 10),
-                  Obx(() => isSelecting.value
-                      ? _buildSelectionControls()
-                      : const SizedBox()),
+                  GotoBulbScreenButton(controller: isSelectingController, bulbController: controller,)
                 ],
               ),
             ),
@@ -114,123 +137,164 @@ class _DeviceListViewState extends State<DeviceListView> {
   }
 
   Widget _buildDeviceRow(UIBulb bulb, BuildContext context) {
-    return Obx(() {
-      final isSelected = tempSelectedBulbs.contains(bulb);
-      return GestureDetector(
-        onTap: isSelecting.value
-            ? () {
-          if (isSelected) {
-            tempSelectedBulbs.remove(bulb);
-          } else {
-            tempSelectedBulbs.add(bulb);
-          }
-        }
-            : null,
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelecting.value && isSelected
-                ? Colors.green.withOpacity(0.8)
-                : Colors.transparent,
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(context).dividerColor,
-                width: 1.0,
-              ),
-              bottom: BorderSide(
-                color: Theme.of(context).dividerColor,
-                width: 1.0,
-              ),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Text(
-                  bulb.id.toString(),
-                  style: const TextStyle(color: Colors.white),
+    return GetBuilder<BulbsController>(
+          builder: (ctrl) {
+            final isSelected = bulb.isSelected;
+            return GestureDetector(
+              onTap: isSelectingController.isSelecting
+                  ? () {
+                if (isSelected) {
+                  controller.removeDevice(bulb);
+                } else {
+                  controller.addDevice(bulb);
+                }
+              }
+                  : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelectingController.isSelecting && isSelected
+                      ? Colors.green.withOpacity(0.8)
+                      : Colors.transparent,
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                      width: 1.0,
+                    ),
+                    bottom: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                      width: 1.0,
+                    ),
+                  ),
                 ),
-              ),
-              Expanded(
-                flex: 3,
+                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
                 child: Row(
                   children: [
-                    Text(bulb.name,
-                        style: const TextStyle(color: Colors.white)),
-                    if (!bulb.isAvailable)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8.0),
-                        child: Icon(Icons.cloud_off,
-                            color: Colors.red, size: 16),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        bulb.id.toString(),
+                        style: const TextStyle(color: Colors.white),
                       ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Row(
+                        children: [
+                          Text(bulb.name,
+                              style: const TextStyle(color: Colors.white)),
+                          if (!bulb.isAvailable)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Icon(Icons.cloud_off,
+                                  color: Colors.red, size: 16),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: isSelectingController.isSelecting
+                          ? IconButton(
+                        icon: Icon(
+                          isSelected
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          color: isSelected ? Colors.white : null,
+                        ),
+                        onPressed: () {
+                          if (isSelected) {
+                            controller.removeDevice(bulb);
+                          } else {
+                            controller.addDevice(bulb);
+                          }
+                        },
+                      )
+                          : IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () => controller.removeDevice(bulb),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Expanded(
-                flex: 1,
-                child: isSelecting.value
-                    ? IconButton(
-                  icon: Icon(
-                    isSelected
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
-                    color: isSelected ? Colors.white : null,
-                  ),
-                  onPressed: () {
-                    if (isSelected) {
-                      tempSelectedBulbs.remove(bulb);
-                    } else {
-                      tempSelectedBulbs.add(bulb);
-                    }
-                  },
-                )
-                    : IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: () => controller.removeDevice(bulb),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
+            );
+          });
   }
 
   Widget _buildRefreshDevicesButton() {
     return ElevatedButton.icon(
       icon: const Icon(Icons.refresh),
       label: const Text("Aggiorna dispositivi"),
-      onPressed: () => controller.loadDevices(),
+      onPressed: _loadDevices,
     );
   }
+}
 
-  Widget _buildSelectDevicesButton() {
-    return Obx(() => ElevatedButton.icon(
-      icon: const Icon(Icons.checklist),
-      label: Text(isSelecting.value
-          ? "Annulla selezione"
-          : "Seleziona dispositivi da controllare"),
-      onPressed: () {
-        if (isSelecting.value) {
-          tempSelectedBulbs.clear();
-        }
-        isSelecting.toggle();
-      },
-    ));
+class IsSelectingUIController extends ChangeNotifier {
+  bool _isSelecting = false;
+  bool get isSelecting => _isSelecting;
+
+  bool toggle() {
+    return setSelecting(!_isSelecting);
   }
 
-  Widget _buildSelectionControls() {
+  bool setSelecting(bool s) {
+    _isSelecting = s;
+    notifyListeners();
+    return _isSelecting;
+  }
+}
+
+class SelectDevicesButton extends StatelessWidget {
+  final IsSelectingUIController controller;
+  final BulbsController bulbController;
+  const SelectDevicesButton({
+    super.key,
+    required this.controller,
+    required this.bulbController
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<BulbsController>(
+        builder: (ctrl) => ElevatedButton.icon(
+          icon: const Icon(Icons.checklist),
+          label: Text(controller.isSelecting
+              ? "Annulla selezione"
+              : "Seleziona dispositivi da controllare"),
+          onPressed: () {
+            if (controller.isSelecting) {
+              bulbController.clearSelection();
+            }
+            controller.toggle();
+          },
+        ));
+  }
+}
+
+class GotoBulbScreenButton extends StatelessWidget {
+  final IsSelectingUIController controller;
+  final BulbsController bulbController;
+  const GotoBulbScreenButton({
+    super.key,
+    required this.controller,
+    required this.bulbController
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if(!controller.isSelecting) {
+      return SizedBox();
+    }
+
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           ElevatedButton(
-            onPressed: tempSelectedBulbs.isEmpty
-                ? null
-                : () {
-              final selected = tempSelectedBulbs.toList();
+            onPressed: () {
+              final selected = bulbController.getSelected();
               Navigator.of(context)
                   .push(
                 MaterialPageRoute(
@@ -239,8 +303,8 @@ class _DeviceListViewState extends State<DeviceListView> {
                 ),
               )
                   .then((_) {
-                tempSelectedBulbs.clear();
-                isSelecting.value = false;
+                bulbController.clearSelection();
+                controller.setSelecting(false);
               });
             },
             child: const Text("Controlla dispositivi"),
@@ -249,4 +313,5 @@ class _DeviceListViewState extends State<DeviceListView> {
       ),
     );
   }
+
 }

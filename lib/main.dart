@@ -6,7 +6,7 @@ import 'business_logic/controllers/loading_controller.dart';
 
 void main() {
   Get.put(LoadingController());
-  Get.put(BulbController());
+  Get.put(BulbsController());
   runApp(const MyApp());
 }
 
