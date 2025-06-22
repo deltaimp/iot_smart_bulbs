@@ -9,6 +9,7 @@ import '../ui_models/ui_bulb.dart';
 class BulbsController extends GetxController {
   final FakeBulbConnector _repository = FakeBulbConnector();
   final RxList<UIBulb> bulbs = <UIBulb>[].obs;
+  final RxBool isLoading = false.obs;
 
   Future<bool> checkDevice(Bulb b) {
     return _repository.pingDevice(b.id);
@@ -30,6 +31,7 @@ class BulbsController extends GetxController {
   }
 
   Future<List<UIBulb>> loadDevices() {
+    isLoading.value = true; 
     return _repository.discoverDevices()
         .then((rawBulbs) => Future.wait(rawBulbs.map((b) =>
         checkDevice(b).then((isAvailable) {
@@ -45,7 +47,8 @@ class BulbsController extends GetxController {
         .catchError((err) {
       Get.snackbar('Errore', 'Non è stato possibile caricare i dispositivi');
       return <UIBulb>[];
-    });
+    })
+    .whenComplete(() => isLoading.value = false);
   }
 
 
