@@ -32,7 +32,7 @@ class _DeviceListViewState extends State<DeviceListView> {
     return Scaffold(
       backgroundColor: Colors.black45,
 
-      drawer: const Drawer( // Qui metti il MenuScreen
+      drawer: const Drawer(
         child: MenuScreen(),
       ),
       appBar: AppBar(
@@ -43,7 +43,7 @@ class _DeviceListViewState extends State<DeviceListView> {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                builder: (_) => const SettingsScreen(), // oppure un dialog o drawer a destra
+                builder: (_) => const SettingsScreen(),
               );
             },
           ),

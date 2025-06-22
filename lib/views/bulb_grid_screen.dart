@@ -55,7 +55,7 @@ class BulbGridScreen extends StatelessWidget {
               builder: (ctrl) {
                 return GestureDetector(
                   onTap: () {
-                    // Da implementare: Navigator.push(context, MaterialPageRoute(builder: (_) => SingleBulbScreen(bulb: bulb)));
+                    // TODO: Navigator.push(context, MaterialPageRoute(builder: (_) => SingleBulbScreen(bulb: bulb)));
                   },
                   child: Card(
                     elevation: 4,
