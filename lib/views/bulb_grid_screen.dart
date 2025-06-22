@@ -5,6 +5,7 @@ import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart';
 import 'package:iot_smart_bulbs/data/models/state.dart' show BulbState;
 import 'package:iot_smart_bulbs/views/screens/menu_screen.dart';
 import 'package:iot_smart_bulbs/views/screens/settings_screen.dart';
+import 'package:iot_smart_bulbs/views/single_bulb_screen.dart';
 
 class BulbGridScreen extends StatelessWidget {
   final List<UIBulb> selectedBulbs;
@@ -52,10 +53,19 @@ class BulbGridScreen extends StatelessWidget {
             final bulb = selectedBulbs[index];
             return GetBuilder<SingleBulbController>(
               init: SingleBulbController(bulb: bulb),
+              tag: 'bulb_${bulb.id}',  // <-- Qui il tag univoco
               builder: (ctrl) {
                 return GestureDetector(
                   onTap: () {
-                    // TODO: Navigator.push(context, MaterialPageRoute(builder: (_) => SingleBulbScreen(bulb: bulb)));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GetBuilder<SingleBulbController>(
+                          tag: 'bulb_${bulb.id}',  // <-- Usa stesso tag per recuperare
+                          builder: (ctrl) => SingleBulbScreen(bulbId: bulb.id),
+                        ),
+                      ),
+                    );
                   },
                   child: Card(
                     elevation: 4,
@@ -88,18 +98,17 @@ class BulbGridScreen extends StatelessWidget {
                           ),
                           Expanded(
                             child: Icon(
-                              //'assets/images/single_bulb.jpg',
                               Icons.lightbulb,
                               size: 60,
-                              color: ctrl.rxBulb.value.uiColor,
+                              color: ctrl.rxBulb.value.uiColor.value,
                             ),
                           ),
                           Text(
-                            ctrl.rxBulb.value.isAvailable
+                            ctrl.rxBulb.value.isAvailable.value
                                 ? 'Stato: ${ctrl.rxBulb.value.state == BulbState.ACCESA ? "Accesa" : "Spenta"}'
                                 : 'Non disponibile',
                             style: TextStyle(
-                              color: ctrl.rxBulb.value.isAvailable
+                              color: ctrl.rxBulb.value.isAvailable.value
                                   ? Colors.green
                                   : Colors.red,
                             ),

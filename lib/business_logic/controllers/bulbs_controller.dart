@@ -15,50 +15,58 @@ class BulbsController extends GetxController {
   }
 
   void removeDevice(UIBulb bulb) {
-    bulb.isSelected = false;
+    bulb.isSelected.value = false;
     bulbs.removeWhere((b) => b.id == bulb.id);
     update();
   }
 
   void addDevice(UIBulb bulb) {
-    bulb.isSelected = true;
+    bulb.isSelected.value = true;
     update();
   }
 
   List<UIBulb> getSelected() {
-    return bulbs.where((b) => b.isSelected).toList();
+    return bulbs.where((b) => b.isSelected.value).toList();
   }
 
-  Future<List<UIBulb>> loadDevices() {
-    isLoading.value = true; 
-    return _repository.discoverDevices()
-        .then((rawBulbs) => Future.wait(rawBulbs.map((b) =>
-        checkDevice(b).then((isAvailable) {
+  Future<List<UIBulb>> loadDevices() async {
+    try {
+      isLoading.value = true;
+      final rawBulbs = await _repository.discoverDevices();
+
+      final uiBulbList = await Future.wait(rawBulbs.map((b) async {
+        try {
+          final isAvailable = await checkDevice(b);
           final uiBulb = UIBulb.fromBulb(b);
-          uiBulb.isAvailable = isAvailable;
+          uiBulb.isAvailable.value = isAvailable;
           return uiBulb;
-        }),
-    )))
-        .then((uiBulbList) {
+        } catch (e) {
+          print("Errore in checkDevice: $e");
+          return UIBulb.fromBulb(b)..isAvailable.value = false;
+        }
+      }));
+
       bulbs.value = uiBulbList;
       return uiBulbList;
-    })
-        .catchError((err) {
+    } catch (err) {
+      print("Errore in loadDevices: $err");
       Get.snackbar('Errore', 'Non è stato possibile caricare i dispositivi');
-      return <UIBulb>[];
-    })
-    .whenComplete(() => isLoading.value = false);
+      bulbs.value = []; // Reset esplicito
+      return [];
+    } finally {
+      isLoading.value = false; // Garantisce sempre il reset
+    }
   }
 
 
 
   void toggleSelection(UIBulb bulb) {
-    bulb.isSelected = !bulb.isSelected;
+    bulb.isSelected.value = !bulb.isSelected.value;
     update();
   }
 
   void clearSelection() {
-    bulbs.forEach((b) => b.isSelected = false);
+    bulbs.forEach((b) => b.isSelected.value = false);
     update();
   }
 }

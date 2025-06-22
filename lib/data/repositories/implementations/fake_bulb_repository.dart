@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb;
+import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb, BulbCopyWith;
 import 'package:iot_smart_bulbs/data/models/state.dart';
 import 'package:iot_smart_bulbs/data/repositories/interfaces/i_smart_bulb_connector.dart';
 import 'package:iot_smart_bulbs/nd_dart_lib/extensions.dart';
@@ -50,6 +50,46 @@ class FakeBulbConnector extends ISmartBulbConnector {
     });
   }
 
+  @override
+  Future<void> setDeviceColor(int id, int colorValue) {
+    return Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      final index = _fakeBulbs.indexWhere((bulb) => bulb.id == id);
+      if (index != -1) {
+        debugPrint("Cambiato colore dispositivo $id a ${Color(colorValue)}");
+        // In una reale implementazione qui aggiorneremmo il colore sul dispositivo
+      } else {
+        throw Exception("Dispositivo $id non trovato");
+      }
+    });
+  }
+
+  @override
+  Future<void> setDeviceBrightness(int id, double brightness) {
+    return Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      final index = _fakeBulbs.indexWhere((bulb) => bulb.id == id);
+      if (index != -1) {
+        final bulb = _fakeBulbs[index];
+        // Simula l'aggiornamento della luminosità
+        debugPrint("Aggiornata luminosità dispositivo $id a $brightness");
+
+        // Se la luminosità è 0, spegni automaticamente la lampadina
+        if (brightness <= 0) {
+          _fakeBulbs[index] = bulb.copyWith(state: BulbState.SPENTA);
+          debugPrint("Dispositivo $id spento per luminosità zero");
+        } else if (bulb.state == BulbState.SPENTA) {
+          // Se era spenta e impostiamo luminosità >0, accendila
+          _fakeBulbs[index] = bulb.copyWith(state: BulbState.ACCESA);
+          debugPrint("Dispositivo $id acceso per luminosità positiva");
+        }
+      } else {
+        debugPrint("Dispositivo $id non trovato");
+        throw Exception("Dispositivo non trovato");
+      }
+    }).catchError((error) {
+      debugPrint("Errore impostazione luminosità: $error");
+      throw error; // Rilancia per gestione negli strati superiori
+    });
+  }
 }
 // Future<List<Bulb>> getDevices() {
   //   return Future.delayed(const Duration(seconds:1))

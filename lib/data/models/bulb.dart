@@ -16,3 +16,19 @@ class Bulb {
     required this.state,
   });
 }
+
+extension BulbCopyWith on Bulb {
+  Bulb copyWith({
+    int? id,
+    String? name,
+    bool? isDimmable,
+    BulbState? state,
+  }) {
+    return Bulb(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isDimmable: isDimmable ?? this.isDimmable,
+      state: state ?? this.state,
+    );
+  }
+}

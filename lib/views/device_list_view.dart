@@ -144,7 +144,7 @@ class _DeviceListViewState extends State<DeviceListView> {
         onTap:
             isSelectingController.isSelecting
                 ? () {
-                  if (isSelected) {
+                  if (isSelected.value) {
                     controller.removeDevice(bulb);
                   } else {
                     controller.addDevice(bulb);
@@ -154,7 +154,7 @@ class _DeviceListViewState extends State<DeviceListView> {
         child: Container(
           decoration: BoxDecoration(
             color:
-                isSelectingController.isSelecting && isSelected
+                isSelectingController.isSelecting && isSelected.value
                     ? Colors.green.withOpacity(0.8)
                     : Colors.transparent,
             border: Border(
@@ -186,7 +186,7 @@ class _DeviceListViewState extends State<DeviceListView> {
                       bulb.name,
                       style: const TextStyle(color: Colors.white),
                     ),
-                    if (!bulb.isAvailable)
+                    if (!bulb.isAvailable.value)
                       const Padding(
                         padding: EdgeInsets.only(left: 8.0),
                         child: Icon(
@@ -204,13 +204,13 @@ class _DeviceListViewState extends State<DeviceListView> {
                     isSelectingController.isSelecting
                         ? IconButton(
                           icon: Icon(
-                            isSelected
+                            isSelected.value
                                 ? Icons.check_circle
                                 : Icons.radio_button_unchecked,
-                            color: isSelected ? Colors.white : null,
+                            color: isSelected.value ? Colors.white : null,
                           ),
                           onPressed: () {
-                            if (isSelected) {
+                            if (isSelected.value) {
                               controller.removeDevice(bulb);
                             } else {
                               controller.addDevice(bulb);
