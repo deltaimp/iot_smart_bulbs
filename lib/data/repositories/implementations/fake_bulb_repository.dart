@@ -44,6 +44,7 @@ class FakeBulbConnector extends ISmartBulbConnector {
   }
 
   // TODO aggiungere reale logica di controllo della rete
+  @override
   Future<bool> pingDevice (int id) {
     return Future.delayed(const Duration(milliseconds: 300)).then((_) {
       return id % 2 == 0;
@@ -51,11 +52,11 @@ class FakeBulbConnector extends ISmartBulbConnector {
   }
 
   @override
-  Future<void> setDeviceColor(int id, int colorValue) {
+  Future<void> setDeviceColor(int id, Color color) {
     return Future.delayed(const Duration(milliseconds: 300)).then((_) {
       final index = _fakeBulbs.indexWhere((bulb) => bulb.id == id);
       if (index != -1) {
-        debugPrint("Cambiato colore dispositivo $id a ${Color(colorValue)}");
+        debugPrint("Cambiato colore dispositivo $id a $color");
         // In una reale implementazione qui aggiorneremmo il colore sul dispositivo
       } else {
         throw Exception("Dispositivo $id non trovato");

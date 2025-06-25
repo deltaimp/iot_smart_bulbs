@@ -20,7 +20,7 @@ class SingleBulbScreen extends StatelessWidget {
         return Scaffold(
           drawer: const Drawer(child: MenuScreen()),
           appBar: AppBar(
-            title: Obx(() => Text(ctrl.rxBulb.value.name)), // nome lampadina
+            title: Text(ctrl.bulb.name), // nome lampadina
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),
@@ -55,21 +55,20 @@ class SingleBulbScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showColorPicker(ctrl),
       child: Obx(() {
-        final bulb = ctrl.rxBulb.value;
         return Column(
           children: [
             Icon(
               Icons.lightbulb,
               size: 120,
-              color: bulb.state == BulbState.ACCESA
-                  ? bulb.uiColor.value.withOpacity(bulb.brightness.value)
+              color: ctrl.bulb.state.value == BulbState.ACCESA
+                  ? ctrl.bulb.getColor()
                   : Colors.grey[300],
             ),
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: bulb.uiColor.value,
+                color: ctrl.bulb.uiColor.value,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.black38),
               ),
@@ -86,7 +85,7 @@ class SingleBulbScreen extends StatelessWidget {
         children: [
           const Text('Luminosità'),
           Slider(
-            value: ctrl.rxBulb.value.brightness.value,
+            value: ctrl.bulb.brightness.value,
             onChanged: ctrl.setBrightness,
           ),
         ],
@@ -98,7 +97,7 @@ class SingleBulbScreen extends StatelessWidget {
     return Obx(() {
       return SwitchListTile(
         title: const Text('Accesa/Spenta'),
-        value: ctrl.rxBulb.value.state == BulbState.ACCESA,
+        value: ctrl.bulb.state.value == BulbState.ACCESA,
         onChanged: (_) => ctrl.togglePower(),
       );
     });
@@ -112,7 +111,7 @@ class SingleBulbScreen extends StatelessWidget {
           title: const Text('Scegli colore'),
           content: SingleChildScrollView(
             child: ColorPicker(
-              pickerColor: ctrl.rxBulb.value.uiColor.value,
+              pickerColor: ctrl.bulb.uiColor.value,
               onColorChanged: ctrl.changeColor,
               showLabel: true,
               pickerAreaHeightPercent: 0.8,

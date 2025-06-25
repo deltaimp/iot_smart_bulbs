@@ -100,15 +100,15 @@ class BulbGridScreen extends StatelessWidget {
                             child: Icon(
                               Icons.lightbulb,
                               size: 60,
-                              color: ctrl.rxBulb.value.uiColor.value,
+                              color: ctrl.bulb.getColor(),
                             ),
                           ),
                           Text(
-                            ctrl.rxBulb.value.isAvailable.value
-                                ? 'Stato: ${ctrl.rxBulb.value.state == BulbState.ACCESA ? "Accesa" : "Spenta"}'
+                            ctrl.bulb.isAvailable.value
+                                ? 'Stato: ${ctrl.bulb.state == BulbState.ACCESA ? "Accesa" : "Spenta"}'
                                 : 'Non disponibile',
                             style: TextStyle(
-                              color: ctrl.rxBulb.value.isAvailable.value
+                              color: ctrl.bulb.isAvailable.value
                                   ? Colors.green
                                   : Colors.red,
                             ),

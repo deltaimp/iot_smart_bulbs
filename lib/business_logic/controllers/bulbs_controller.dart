@@ -1,12 +1,13 @@
 import 'package:get/get.dart';
 import 'package:iot_smart_bulbs/data/models/bulb.dart' show Bulb;
 import 'package:iot_smart_bulbs/data/repositories/implementations/fake_bulb_repository.dart';
+import 'package:iot_smart_bulbs/data/repositories/interfaces/i_smart_bulb_connector.dart';
 import 'package:iot_smart_bulbs/nd_dart_lib/extensions.dart';
 
 import '../ui_models/ui_bulb.dart';
 
 class BulbsController extends GetxController {
-  final FakeBulbConnector _repository = FakeBulbConnector();
+  final ISmartBulbConnector _repository = FakeBulbConnector();
   final RxList<UIBulb> bulbs = <UIBulb>[].obs;
   final RxBool isLoading = false.obs;
 

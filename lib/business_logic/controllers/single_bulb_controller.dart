@@ -8,17 +8,16 @@ import 'package:iot_smart_bulbs/data/repositories/implementations/fake_bulb_repo
 class SingleBulbController extends GetxController {
   //final UIBulb bulb;
   final FakeBulbConnector _repository = FakeBulbConnector();
-  final Rx<UIBulb> rxBulb;
-
-  SingleBulbController({required UIBulb bulb}) : rxBulb = bulb.obs;
+  UIBulb _bulb;
+  UIBulb get bulb => _bulb;
+  SingleBulbController({required UIBulb bulb}) : _bulb = bulb;
 
   Future<void> changeColor(Color newColor) {
     return Future.microtask(() {
-      rxBulb.update((bulb) {
-        bulb?.uiColor.value = newColor;
-      });
+      return _repository.setDeviceColor(bulb.id, newColor);
     }).then((_) {
-      return _repository.setDeviceColor(rxBulb.value.id, newColor.value);
+      _bulb.uiColor.value = newColor;
+      update();
     }).catchError((error) {
       debugPrint("Errore cambio colore: $error");
       Get.snackbar('Errore', 'Impossibile cambiare colore');
@@ -28,16 +27,15 @@ class SingleBulbController extends GetxController {
   Future<void> setBrightness(double value) {
     final clampedValue = value.clamp(0.0, 1.0);
     return Future.microtask(() {
-      rxBulb.update((bulb) {
-        bulb?.brightness.value = clampedValue;
-      });
+      _repository.setDeviceBrightness(bulb.id, clampedValue);
     }).then((_) {
-      return _repository.setDeviceBrightness(rxBulb.value.id, clampedValue);
-    }).then((_) {
+      _bulb.brightness.value = clampedValue;
       if (clampedValue == 0) {
         return togglePower(); // Spenta se luminosità a 0
       }
-      return Future.value();
+      else {
+        update();
+      }
     }).catchError((error) {
       debugPrint("Errore regolazione luminosità: $error");
       Get.snackbar('Errore', 'Impossibile regolare luminosità');
@@ -49,25 +47,24 @@ class SingleBulbController extends GetxController {
     return Future.delayed(const Duration(seconds: 1)).then((_) {
      final isAvailable = true;
       // final isAvailable = Random().nextBool(); // Simula risultato casuale
-      rxBulb.value = rxBulb.value.copyWith(
+      _bulb = bulb.copyWith(
         isAvailable: isAvailable,
-        uiColor: isAvailable ? null : Colors.grey,
       );
     });
   }
 
   Future<void> togglePower() {
-    final newState = rxBulb.value.state == BulbState.ACCESA
+    final newState = bulb.state.value == BulbState.ACCESA
         ? BulbState.SPENTA
         : BulbState.ACCESA;
 
-    rxBulb.value = rxBulb.value.copyWith(
+    _bulb = bulb.copyWith(
       state: newState,
-      uiColor: UIBulb.defaultColorForState(newState),
     );
 
+    update();
     // Qui ci sarà logica vera per cambiare lo stato
-    return _repository.setDeviceState(rxBulb.value.id, newState).then((_) {
+    return _repository.setDeviceState(bulb.id, newState).then((_) {
       //
     });
   }
