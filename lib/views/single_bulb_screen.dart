@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_state.dart';
-import 'package:iot_smart_bulbs/business_logic/controllers/bulbs_controller.dart' show BulbsController;
 import 'package:iot_smart_bulbs/business_logic/controllers/single_bulb_controller.dart' show SingleBulbController;
 import 'package:iot_smart_bulbs/data/models/state.dart' show BulbState;
 import 'package:iot_smart_bulbs/views/screens/menu_screen.dart';
@@ -22,7 +20,7 @@ class SingleBulbScreen extends StatelessWidget {
         return Scaffold(
           drawer: const Drawer(child: MenuScreen()),
           appBar: AppBar(
-            title: Obx(() => Text(ctrl.rxBulb.value.name)),
+            title: Obx(() => Text(ctrl.rxBulb.value.name)), // nome lampadina
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),
@@ -39,14 +37,11 @@ class SingleBulbScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Lampadina con selettore colore
-                  _buildBulbWithColorPicker(ctrl),
+                  _buildBulbWithColorPicker(ctrl), // lampadina con selezione colore
                   const SizedBox(height: 40),
-                  // Slider luminosità
-                  _buildBrightnessSlider(ctrl),
+                  _buildBrightnessSlider(ctrl), // slider luminosità
                   const SizedBox(height: 20),
-                  // Interruttore ON/OFF
-                  _buildPowerSwitch(ctrl),
+                  _buildPowerSwitch(ctrl), // bottone on/off
                 ],
               ),
             ),

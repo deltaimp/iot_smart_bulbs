@@ -47,7 +47,8 @@ class SingleBulbController extends GetxController {
 
   Future<void> checkAvailability() {
     return Future.delayed(const Duration(seconds: 1)).then((_) {
-      final isAvailable = Random().nextBool(); // Simula risultato casuale
+     final isAvailable = true;
+      // final isAvailable = Random().nextBool(); // Simula risultato casuale
       rxBulb.value = rxBulb.value.copyWith(
         isAvailable: isAvailable,
         uiColor: isAvailable ? null : Colors.grey,
