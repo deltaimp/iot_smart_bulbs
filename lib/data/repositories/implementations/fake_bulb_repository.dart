@@ -51,11 +51,13 @@ class FakeBulbConnector extends ISmartBulbConnector {
   }
 
   @override
-  Future<void> setDeviceColor(int id, int colorValue) {
+  Future<void> setDeviceColor(int id, Color color) {
     return Future.delayed(const Duration(milliseconds: 300)).then((_) {
+
       final index = _fakeBulbs.indexWhere((bulb) => bulb.id == id);
       if (index != -1) {
-        debugPrint("Cambiato colore dispositivo $id a ${Color(colorValue)}");
+        debugPrint("Cambiato colore dispositivo $id a $color");
+        _fakeBulbs[index] = _fakeBulbs[index].copyWith(color: color);
         // In una reale implementazione qui aggiorneremmo il colore sul dispositivo
       } else {
         throw Exception("Dispositivo $id non trovato");

@@ -4,10 +4,11 @@ import 'package:get/get.dart';
 import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart' show UIBulb;
 import 'package:iot_smart_bulbs/data/models/state.dart' show BulbState;
 import 'package:iot_smart_bulbs/data/repositories/implementations/fake_bulb_repository.dart' show FakeBulbConnector;
+import 'package:iot_smart_bulbs/data/repositories/interfaces/i_smart_bulb_connector.dart';
 
 class SingleBulbController extends GetxController {
   //final UIBulb bulb;
-  final FakeBulbConnector _repository = FakeBulbConnector();
+  final ISmartBulbConnector _repository = FakeBulbConnector();
   final Rx<UIBulb> rxBulb;
 
   SingleBulbController({required UIBulb bulb}) : rxBulb = bulb.obs;
@@ -18,7 +19,7 @@ class SingleBulbController extends GetxController {
         bulb?.uiColor.value = newColor;
       });
     }).then((_) {
-      return _repository.setDeviceColor(rxBulb.value.id, newColor.value);
+      return _repository.setDeviceColor(rxBulb.value.id, newColor);
     }).catchError((error) {
       debugPrint("Errore cambio colore: $error");
       Get.snackbar('Errore', 'Impossibile cambiare colore');

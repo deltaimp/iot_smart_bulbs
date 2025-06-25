@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iot_smart_bulbs/business_logic/controllers/bulbs_controller.dart';
 import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart';
+import 'package:iot_smart_bulbs/nd_dart_lib/extensions.dart';
 import 'package:iot_smart_bulbs/views/screens/menu_screen.dart';
 import 'package:iot_smart_bulbs/views/screens/settings_screen.dart';
 
@@ -11,7 +12,9 @@ class DeviceListView extends StatefulWidget {
   const DeviceListView({super.key});
 
   @override
-  _DeviceListViewState createState() => _DeviceListViewState();
+  State<StatefulWidget> createState() {
+    return _DeviceListViewState();
+  }
 }
 
 class _DeviceListViewState extends State<DeviceListView> {
@@ -22,7 +25,10 @@ class _DeviceListViewState extends State<DeviceListView> {
 
   void _loadDevices() {
     controller.loadDevices().catchError(
-      (e) => Get.snackbar("Errore", e.toString()),
+      (e) {
+        Get.snackbar("Errore", e.toString());
+        return <UIBulb>[].toFuture();
+      },
     );
   }
 
