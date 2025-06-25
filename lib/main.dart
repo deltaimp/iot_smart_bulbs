@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:iot_smart_bulbs/views/onboarding/onboarding_screen.dart';
 import 'package:get/get.dart';
-import 'business_logic/controllers/bulb_controller.dart';
-import 'business_logic/controllers/loading_controller.dart';
+import 'business_logic/controllers/bulbs_controller.dart';
 
 void main() {
-  Get.put(LoadingController());
   Get.put(BulbsController());
   runApp(const MyApp());
 }

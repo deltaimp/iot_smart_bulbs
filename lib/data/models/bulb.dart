@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'state.dart';
 
-class Bulb { // caratteristiche della Lampadina
+class Bulb {
   final int id;
    String name;
   final BulbState state;
-  // final Color color;
+  // maybe stringa esadecimale colore
   final bool isDimmable;
 
   Bulb ({
@@ -14,6 +14,21 @@ class Bulb { // caratteristiche della Lampadina
     required this.name,
     required this.isDimmable,
     required this.state,
-    // required this.color,
   });
+}
+
+extension BulbCopyWith on Bulb {
+  Bulb copyWith({
+    int? id,
+    String? name,
+    bool? isDimmable,
+    BulbState? state,
+  }) {
+    return Bulb(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isDimmable: isDimmable ?? this.isDimmable,
+      state: state ?? this.state,
+    );
+  }
 }

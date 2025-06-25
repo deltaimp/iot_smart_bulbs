@@ -1,21 +1,54 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:get/get.dart';
 import 'package:iot_smart_bulbs/business_logic/ui_models/ui_bulb.dart' show UIBulb;
 import 'package:iot_smart_bulbs/data/models/state.dart' show BulbState;
 import 'package:iot_smart_bulbs/data/repositories/implementations/fake_bulb_repository.dart' show FakeBulbConnector;
 
 class SingleBulbController extends GetxController {
-  final UIBulb bulb;
+  //final UIBulb bulb;
   final FakeBulbConnector _repository = FakeBulbConnector();
   final Rx<UIBulb> rxBulb;
 
-  SingleBulbController({required this.bulb}) : rxBulb = bulb.obs;
+  SingleBulbController({required UIBulb bulb}) : rxBulb = bulb.obs;
+
+  Future<void> changeColor(Color newColor) {
+    return Future.microtask(() {
+      rxBulb.update((bulb) {
+        bulb?.uiColor.value = newColor;
+      });
+    }).then((_) {
+      return _repository.setDeviceColor(rxBulb.value.id, newColor.value);
+    }).catchError((error) {
+      debugPrint("Errore cambio colore: $error");
+      Get.snackbar('Errore', 'Impossibile cambiare colore');
+    });
+  }
+
+  Future<void> setBrightness(double value) {
+    final clampedValue = value.clamp(0.0, 1.0);
+    return Future.microtask(() {
+      rxBulb.update((bulb) {
+        bulb?.brightness.value = clampedValue;
+      });
+    }).then((_) {
+      return _repository.setDeviceBrightness(rxBulb.value.id, clampedValue);
+    }).then((_) {
+      if (clampedValue == 0) {
+        return togglePower(); // Spenta se luminosità a 0
+      }
+      return Future.value();
+    }).catchError((error) {
+      debugPrint("Errore regolazione luminosità: $error");
+      Get.snackbar('Errore', 'Impossibile regolare luminosità');
+    });
+  }
+
 
   Future<void> checkAvailability() {
     return Future.delayed(const Duration(seconds: 1)).then((_) {
-      final isAvailable = Random().nextBool(); // Simula risultato casuale
+     final isAvailable = true;
+      // final isAvailable = Random().nextBool(); // Simula risultato casuale
       rxBulb.value = rxBulb.value.copyWith(
         isAvailable: isAvailable,
         uiColor: isAvailable ? null : Colors.grey,
