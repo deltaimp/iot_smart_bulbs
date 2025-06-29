@@ -217,10 +217,8 @@ class _DeviceListViewState extends State<DeviceListView> {
                             }
                           },
                         )
-                        : IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: () => controller.removeDevice(bulb),
-                        ),
+                        :const SizedBox()
+
               ),
             ],
           ),
