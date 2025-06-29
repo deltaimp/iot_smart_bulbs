@@ -7,6 +7,4 @@ abstract class ISmartBulbConnector {
   Future<void> setDeviceColor(int id, Color color);
   Future<bool> pingDevice (int id);
   Future<void> setDeviceBrightness(int id, double brightness);
-  // Future<Bulb> setDeviceProps(...)
-  // Future<Bulb> setDeviceProp(...)
 }

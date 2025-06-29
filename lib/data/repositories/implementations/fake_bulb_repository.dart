@@ -46,9 +46,10 @@ class FakeBulbConnector extends ISmartBulbConnector {
   // TODO aggiungere reale logica di controllo della rete
   @override
   Future<bool> pingDevice (int id) {
-    return Future.delayed(const Duration(milliseconds: 300)).then((_) {
+     return Future.delayed(const Duration(milliseconds: 300)).then((_) {
       return id % 2 == 0;
     });
+     // per avere tutti ok --> return true
   }
 
   @override
