@@ -92,34 +92,4 @@ class FakeBulbConnector extends ISmartBulbConnector {
     });
   }
 }
-// Future<List<Bulb>> getDevices() {
-  //   return Future.delayed(const Duration(seconds:1))
-  //       .then((_) => _fakeBulbs);
-  // }
-  //
-  // Future<List<Bulb>> getAvailableDevices() {
-  //   return Future.delayed(const Duration(seconds:1))
-  //       .then((_) => _availableBulbs);
-  // }
-  //
-  // Future<bool> handShake(int deviceId) {
-  //   return Future.delayed(const Duration(milliseconds: 500))
-  //       .then((_) => true);
-  // }
-  //
-  // Future<bool> addDevice(Bulb newBulb) {
-  //   return Future.delayed(const Duration(milliseconds: 300))
-  //       .then((_) {
-  //     _fakeBulbs.add(newBulb);
-  //     return true;
-  //   });
-  // }
-  //
-  // Future<bool> removeDevice(int deviceId) {
-  //   return Future.delayed(const Duration(milliseconds: 300))
-  //       .then((_) {
-  //     _fakeBulbs.removeWhere((bulb) => bulb.id == deviceId);
-  //     return true;
-  //   });
-  // }
 
